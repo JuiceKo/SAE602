@@ -1,0 +1,50 @@
+version: '3.8'
+
+services:
+
+  mysql:
+    image: mysql:5.7
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: P@ssw0rd
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./export.sql:/docker-entrypoint-initdb.d/export.sql
+    ports:
+      - "3306:3306"
+    networks:
+      reseau_sae:
+        ipv4_address: 192.168.1.10
+    deploy:
+      replicas: 1
+
+  python_app1:
+    image: python:3.8-slim
+    command: ["python", "/script1.py"]
+    volumes:
+      - ./script1.py:/script1.py
+    networks:
+      reseau_sae:
+        ipv4_address: 192.168.1.20
+    deploy:
+      replicas: 1
+
+  python_app2:
+    image: python:3.8-slim
+    command: ["python", "/script2.py"]
+    volumes:
+      - ./script2.py:/script2.py
+    networks:
+      - reseau_sae
+    deploy:
+      replicas: 2
+
+networks:
+  reseau_sae:
+    driver: overlay
+    ipam:
+      config:
+        - subnet: 192.168.1.0/24
+
+volumes:
+  mysql_data:
