@@ -1,0 +1,37 @@
+stages:
+  - build
+  - deploy
+  - test
+
+variables:
+  DOCKER_DRIVER: overlay2
+
+services:
+  - docker:20.10.14-dind
+
+before_script:
+  - docker info
+  - docker-compose --version
+
+build:
+  stage: build
+  script:
+    - docker-compose build
+
+deploy:
+  stage: deploy
+  script:
+    - docker-compose up -d
+  when: manual
+
+test:
+  stage: test
+  script:
+    - docker-compose exec -T python_app1 pytest /tests/test_script1.py
+    - docker-compose exec -T python_app2 pytest /tests/test_script2.py
+
+cleanup:
+  stage: cleanup
+  script:
+    - docker-compose down -v
+  when: always
